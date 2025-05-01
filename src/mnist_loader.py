@@ -10,11 +10,16 @@ function usually called by our neural network code.
 
 #### Libraries
 # Standard library
-import cPickle
+import pickle
 import gzip
 
 # Third-party libraries
 import numpy as np
+
+import gzip
+import pickle
+import numpy as np
+
 
 def load_data():
     """Return the MNIST data as a tuple containing the training data,
@@ -33,15 +38,16 @@ def load_data():
 
     The ``validation_data`` and ``test_data`` are similar, except
     each contains only 10,000 images.
-
-    This is a nice data format, but for use in neural networks it's
-    helpful to modify the format of the ``training_data`` a little.
-    That's done in the wrapper function ``load_data_wrapper()``, see
-    below.
     """
-    f = gzip.open('../data/mnist.pkl.gz', 'rb')
-    training_data, validation_data, test_data = cPickle.load(f)
-    f.close()
+    with gzip.open('../data/mnist.pkl.gz', 'rb') as f:
+        # 使用'latin1'编码解决Python 2到3的兼容性问题
+        training_data, validation_data, test_data = pickle.load(f, encoding='latin1')
+
+    # 确保数据是numpy数组格式（某些版本可能需要这个转换）
+    training_data = (np.array(training_data[0]), np.array(training_data[1]))
+    validation_data = (np.array(validation_data[0]), np.array(validation_data[1]))
+    test_data = (np.array(test_data[0]), np.array(test_data[1]))
+
     return (training_data, validation_data, test_data)
 
 def load_data_wrapper():

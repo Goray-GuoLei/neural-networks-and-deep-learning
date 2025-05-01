@@ -53,18 +53,18 @@ class Network(object):
         tracking progress, but slows things down substantially."""
         if test_data: n_test = len(test_data)
         n = len(training_data)
-        for j in xrange(epochs):
+        for j in range(epochs):
             random.shuffle(training_data)
             mini_batches = [
                 training_data[k:k+mini_batch_size]
-                for k in xrange(0, n, mini_batch_size)]
+                for k in range(0, n, mini_batch_size)]
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
-                print "Epoch {0}: {1} / {2}".format(
-                    j, self.evaluate(test_data), n_test)
+                print ("Epoch {0}: {1} / {2}".format(
+                    j, self.evaluate(test_data), n_test))
             else:
-                print "Epoch {0} complete".format(j)
+                print ("Epoch {0} complete".format(j))
 
     def update_mini_batch(self, mini_batch, eta):
         """Update the network's weights and biases by applying
@@ -109,7 +109,7 @@ class Network(object):
         # second-last layer, and so on.  It's a renumbering of the
         # scheme in the book, used here to take advantage of the fact
         # that Python can use negative indices in lists.
-        for l in xrange(2, self.num_layers):
+        for l in range(2, self.num_layers):
             z = zs[-l]
             sp = sigmoid_prime(z)
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
@@ -139,3 +139,33 @@ def sigmoid(z):
 def sigmoid_prime(z):
     """Derivative of the sigmoid function."""
     return sigmoid(z)*(1-sigmoid(z))
+
+def test_network():
+    import numpy as np
+
+    # 创建一个简单的异或数据集
+    training_data = [
+        (np.array([[0], [0]]), np.array([[0]])),
+        (np.array([[0], [1]]), np.array([[1]])),
+        (np.array([[1], [0]]), np.array([[1]])),
+        (np.array([[1], [1]]), np.array([[0]]))
+    ]
+
+    # 把标签从向量转换为 int（evaluate 时使用）
+    test_data = [
+        (x, int(y[0][0])) for x, y in training_data
+    ]
+
+    # 初始化一个 2-3-1 的网络（输入层2个神经元，隐藏层3个，输出层1个）
+    net = Network([2, 3, 1])
+
+    # 训练网络（注意 XOR 不线性可分，需要非线性模型才能拟合）
+    net.SGD(training_data, epochs=10000, mini_batch_size=4, eta=1.0, test_data=test_data)
+
+    # 打印训练后的结果
+    for x, y in test_data:
+        output = net.feedforward(x)
+        print(f"Input: {x.ravel()}, Output: {output.ravel()}, Predicted: {round(output.item())}, Label: {y}")
+
+if __name__ == "__main__":
+    test_network()
